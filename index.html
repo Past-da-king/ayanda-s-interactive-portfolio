@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ayanda's Interactive Experience</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --glow-color-1: #8A2BE2; /* Purple */
+            --glow-color-2: #4169E1; /* Royal Blue */
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0d1117; /* GitHub dark theme background */
+            overflow: hidden; /* Prevent body scroll, handled by views */
+        }
+
+        .aurora-background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.3; pointer-events: none; }
+        .aurora-background::before, .aurora-background::after { content: ''; position: absolute; border-radius: 50%; filter: blur(120px); }
+        .aurora-background::before { width: 60vw; height: 60vw; max-width: 700px; max-height: 700px; background: radial-gradient(circle, var(--glow-color-1), transparent 60%); top: 10%; left: 15%; animation: moveAurora1 25s infinite alternate ease-in-out; }
+        .aurora-background::after { width: 50vw; height: 50vw; max-width: 600px; max-height: 600px; background: radial-gradient(circle, var(--glow-color-2), transparent 60%); bottom: 5%; right: 10%; animation: moveAurora2 30s infinite alternate-reverse ease-in-out; }
+        @keyframes moveAurora1 { to { transform: translate(100px, 50px) scale(1.2); } }
+        @keyframes moveAurora2 { to { transform: translate(-80px, -40px) scale(0.8); } }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.4); }
+        .custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.2) transparent; }
+
+
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .fade-out { animation: fadeOut 0.3s ease-in forwards; }
+        .fade-in-up { opacity: 0; animation: fadeInUpAnim 0.5s ease-out forwards; }
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+        @keyframes fadeInUpAnim { 
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .typing-indicator span { height: 8px; width: 8px; background-color: #9ca3af; display: inline-block; border-radius: 50%; animation: bob 1.4s infinite ease-in-out both; }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bob {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.6.0",
+    "react-markdown": "https://esm.sh/react-markdown@^10.1.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="text-slate-200">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>
