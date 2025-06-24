@@ -2,7 +2,11 @@
 import React from 'react';
 import { Message, Sender } from '../types';
 import Markdown from 'react-markdown';
-import ChatProjectCard from './ChatProjectCard'; // Import the new component
+// The import below is correct for loading ChatProjectCard.tsx as a sibling module.
+// If an error mentions a path like '@/components/ChatProjectCard',
+// that path is not used here and suggests an issue external to this specific import statement,
+// possibly in environment configuration (dev server, path aliases) or a cached/different file version.
+import ChatProjectCard from './ChatProjectCard'; 
 
 interface ChatMessageProps {
   message: Message;

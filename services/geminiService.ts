@@ -1,6 +1,6 @@
 
-import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
-import { GEMINI_MODEL_NAME, GEMINI_SYSTEM_INSTRUCTION } from '../constants';
+import { GoogleGenAI, Chat, GenerateContentResponse, Tool } from "@google/genai";
+import { GEMINI_MODEL_NAME, GEMINI_SYSTEM_INSTRUCTION, displayProjectsFunctionDeclaration, DISPLAY_PROJECTS_FUNCTION_NAME } from '../constants';
 import { BotAction } from "../types";
 
 const API_KEY = process.env.API_KEY;
@@ -10,19 +10,17 @@ let chat: Chat | null = null;
 if (API_KEY) {
     try {
         const ai = new GoogleGenAI({ apiKey: API_KEY });
+        const tools: Tool[] = [{ functionDeclarations: [displayProjectsFunctionDeclaration] }];
+        
         chat = ai.chats.create({
             model: GEMINI_MODEL_NAME,
             config: {
                 systemInstruction: GEMINI_SYSTEM_INSTRUCTION,
-                // Tell Gemini we expect JSON responses when the system instruction dictates it.
-                // For other cases, it should still be text within a JSON structure or plain text if not structured.
-                // The prompt now explicitly asks for JSON for specific actions.
-                // responseMimeType: "application/json", // This might force ALL responses to be JSON.
-                                                        // Let's rely on the prompt to output JSON string and parse it.
+                tools: tools,
             },
         });
     } catch (error) {
-        console.error("Failed to initialize Gemini Chat:", error);
+        console.error("Failed to initialize Gemini Chat with function calling:", error);
         chat = null; 
     }
 } else {
@@ -39,26 +37,33 @@ export const getChatResponse = async (userMessage: string): Promise<string | Bot
 
   try {
     const result: GenerateContentResponse = await chat.sendMessage({ message: userMessage });
-    let responseText = result.text;
-
-    // Try to parse as JSON if it looks like it (e.g., starts with { and ends with })
-    // Remove markdown fences if present
-    const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
-    const match = responseText.match(fenceRegex);
-    if (match && match[2]) {
-      responseText = match[2].trim();
+    
+    // Check for function call first, as per JS SDK (response.functionCalls)
+    if (result.functionCalls && result.functionCalls.length > 0) {
+        const funcCall = result.functionCalls[0]; // Assuming one function call for this use case
+        if (funcCall.name === DISPLAY_PROJECTS_FUNCTION_NAME) {
+            // The model wants to call our function to display projects
+            return { type: 'DISPLAY_PROJECTS' } as BotAction;
+        } else {
+            // Handle other function calls if any in the future, or treat as error/unexpected
+            console.warn("Received unhandled function call:", funcCall.name);
+            // Fall through to text response or return specific message
+        }
     }
 
-    try {
-      const parsedData = JSON.parse(responseText);
-      if (parsedData && parsedData.action === 'DISPLAY_PROJECTS') {
-        return { type: 'DISPLAY_PROJECTS' } as BotAction;
-      }
-    } catch (e) {
-      // Not a JSON response or not the action we're looking for, proceed with text
+    // If no function call, or unhandled function call, process as text
+    let responseText = result.text;
+    
+    // The Gemini API might return an empty string for `text` if a function call was made,
+    // or if the model chose not to respond with text.
+    // If responseText is empty and no function call was handled, provide a fallback.
+    if (!responseText && (!result.functionCalls || result.functionCalls.length === 0)) {
+        console.warn("Gemini response had no text and no recognized function call.");
+        responseText = "I'm not sure how to respond to that. Could you try rephrasing?";
     }
     
-    return responseText; // Return the original text if not a special JSON action
+    return responseText;
+
   } catch (error) {
     console.error("Gemini API error:", error);
     let errorMessage = "I'm having a little trouble thinking right now. Please try asking again in a moment.";
